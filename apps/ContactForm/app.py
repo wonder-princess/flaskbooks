@@ -20,7 +20,7 @@ g.connection = "connection"
 print(g.connection)
 
 @app.route('/')
-def hello():
+def index():
     return render_template("contact.html")
 
 @app.route("/contact")
