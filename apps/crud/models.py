@@ -1,7 +1,7 @@
 from datetime import datetime
-from email import generator
 
 from apps.app import db
+from werkzeug.security import generate_password_hash
 
 
 class User(db.Model):
