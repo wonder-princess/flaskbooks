@@ -1,13 +1,17 @@
-{% extends "crud/base.html" %}
+{% extends "auth/base.html" %}
 {% block title %}ユーザー新規作成{% endblock %}
 {% block content %}
 
-<h2>ユーザー新規作成</h2>
-<form action="{{ url_for('crud.create_user') }}" method="POST" novalidate="novalidate">
+<h2>ユーザー新規登録</h2>
+<form action="{{ url_for('auth.signup', next=request.args.get('next')) }}" method="POST" novalidate="novalidate">
+    {% for message in get_flashed_messages() %}
+    <p style="color: red;">{{ message }}</p>
+    {% endfor %}
+    
     {{ form.csrf_token }}
     
     <p>
-        {{ form.username.label }} {{ form.username(placeholder="ユーザー名") }}
+        {{ form.username.label }} {{ form.username(size=30, placeholder="ユーザー名") }}
     </p>
     {% for error in form.username.errors %}
     <span style="color: red;">{{ error }}</span>

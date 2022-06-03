@@ -3,7 +3,7 @@ from wtforms import PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, Email, Length
 
 
-class UserForm(FlaskForm):
+class SignUpForm(FlaskForm):
     username = StringField(
         "ユーザー名",
         validators=[
@@ -25,3 +25,18 @@ class UserForm(FlaskForm):
     )
 
     submit = SubmitField("新規登録")
+
+class LoginForm(FlaskForm):
+    email = StringField(
+        "メールアドレス",
+        validators=[
+            DataRequired(message="メールアドレスは必須です。"),
+            Email(message="メールアドレスの形式で入力してください。"),
+        ],
+    )
+
+    password = PasswordField(
+        validators=[DataRequired(message="パスワードは必須です。")]
+    )
+
+    submit = SubmitField("ログイン")
