@@ -41,8 +41,11 @@ def create_app(config_key):
     from apps.auth import views as auth_views
     app.register_blueprint(auth_views.auth, url_prefix="/auth")
 
-    @app.route("/")
-    def index():
-        return render_template("crud/index.html")
+    from apps.detector import views as dt_views
+    app.register_blueprint(dt_views.dt)
+
+    # @app.route("/")
+    # def index():
+    #     return render_template("crud/index.html")
 
     return app
