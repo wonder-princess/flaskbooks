@@ -49,3 +49,12 @@ def upload_image():
         return redirect(url_for("detector.index"))
     return render_template("detector/upload.html", form=form)
 
+def make_color(labels):
+    colors = [[random.randint(0, 255) for _ in range(3)] for _ in labels]
+    color = random.choice(colors)
+    return color
+
+def male_line(result_image):
+    line = round(0.002 * max(result_image.shape[0:2])) + 1
+    return line
+
