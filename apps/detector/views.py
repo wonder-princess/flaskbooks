@@ -12,7 +12,7 @@ from apps.crud.models import User
 from apps.detector.forms import DeleteForm, DetectorForm, UploadImageForm
 from apps.detector.models import UserImage, UserImageTag
 from flask import (Blueprint, current_app, flash, redirect, render_template,
-                   send_from_directory, url_for)
+                   request, send_from_directory, url_for)
 from flask_login import current_user, login_required
 from PIL import Image
 from sqlalchemy.exc import SQLAlchemyError
@@ -96,23 +96,6 @@ def dralw_texts(result_image, line, c1, cv2, color, labels, label):
     )[0]
     c2 = c1[0] + t_size[0], c1[1] - t_size[1] -3
 
-    print("result_image:",result_image)
-    print("--------------------")
-    print("line(non):",line)
-    print("--------------------")
-    print("c1:",c1)
-    print("--------------------")
-    print("c2:",c2)
-    print("--------------------")
-    print("cv2(non):",cv2)
-    print("--------------------")
-    print("color:",color)
-    print("--------------------")
-    print("labels(non):",labels)
-    print("-------------------")
-    print("label(non)",label)
-
-
     cv2.rectangle(result_image, c1, c2, color, -1)
     cv2.putText(
         result_image,
@@ -130,7 +113,6 @@ def exec_detector(target_image_path):
     labels = current_app.config["LABELS"]
     image = Image.open(target_image_path)
     image_tensor = torchvision.transforms.functional.to_tensor(image)
-    # model = torch.load(Path(current_app.root_path, "detector", "maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth"))
     model = torch.load(Path(current_app.root_path, "detector", "model.pt"))
     model = model.eval()
     output = model([image_tensor])[0]
@@ -198,3 +180,44 @@ def delete_image(image_id):
         db.session.rollback()
 
     return redirect(url_for("detector.index"))
+
+@dt.route("/images/serch", methods=["GET"])
+def search():
+    user_images = db.session.query(User,UserImage).join(UserImage, User.id == UserImage.user_id)
+
+    search_text = request.args.get("search")
+    user_image_tag_dict = {}
+    filtered_user_images = []
+
+    for user_image in user_images:
+        if not search_text:
+            user_image_tags = (
+                db.session.query(UserImageTag).filter(UserImageTag.user_image_id == user_image.UserImage.id).all()
+            )
+        else:
+            user_image_tags = (
+                db.session.query(UserImageTag).filter(UserImageTag.user_image_id == user_image.UserImage.id).filter(UserImageTag.tag_name.like("%" + search_text + "%")).all()
+            )
+            
+            if not user_image_tags:
+                continue
+
+            user_image_tags = (
+                db.session.query(UserImageTag).filter(UserImageTag.user_image_id == user_image.UserImage.id).all()
+            )
+
+        #未実装時の挙動を確認
+        user_image_tag_dict[user_image.UserImage.id] = user_image_tags
+
+        filtered_user_images.append(user_image)
+
+    delete_form = DeleteForm()
+    detector_form = DetectorForm()
+
+    return render_template(
+        "detector/index.html",
+        user_images=filtered_user_images,
+        user_image_tag_dict=user_image_tag_dict,
+        delete_form=delete_form,
+        detector_form=detector_form,
+    )
