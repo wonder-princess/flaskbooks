@@ -88,12 +88,31 @@ def dralw_lines(c1, c2, result_image, line, color):
     return cv2
 
 def dralw_texts(result_image, line, c1, cv2, color, labels, label):
-    display_txt = f"{labels[label]}"
+    
+    display_txt = f"{labels[label]}" 
     font = max(line - 1, 1)
     t_size = cv2.getTextSize(
         display_txt, 0, fontScale=line / 3, thickness=font
     )[0]
-    c2 = c1[0] + t_size[0], c1[1], - t_size[1] -3
+    c2 = c1[0] + t_size[0], c1[1] - t_size[1] -3
+
+    print("result_image:",result_image)
+    print("--------------------")
+    print("line(non):",line)
+    print("--------------------")
+    print("c1:",c1)
+    print("--------------------")
+    print("c2:",c2)
+    print("--------------------")
+    print("cv2(non):",cv2)
+    print("--------------------")
+    print("color:",color)
+    print("--------------------")
+    print("labels(non):",labels)
+    print("-------------------")
+    print("label(non)",label)
+
+
     cv2.rectangle(result_image, c1, c2, color, -1)
     cv2.putText(
         result_image,
@@ -116,10 +135,12 @@ def exec_detector(target_image_path):
     model = model.eval()
     output = model([image_tensor])[0]
     tags = []
+
+    #---画像が検知されない場合エラーになるため、エラーキャッチする必要がある。---
+    cv2 = None
+
     result_image = np.array(image.copy())
-    for box, label, score in zip(
-        output["boxes"], output["labels"], output["scores"]
-    ):
+    for box, label, score in zip(output["boxes"], output["labels"], output["scores"]):
         if score > 0.5 and labels[label] not in tags:
             color = make_color(labels)
             line = make_line(result_image)
@@ -128,6 +149,7 @@ def exec_detector(target_image_path):
             cv2 = dralw_lines(c1, c2, result_image, line, color)
             cv2 = dralw_texts(result_image, line, c1, cv2, color, labels, label)
             tags.append(labels[label])
+    
     detected_image_file_name = str(uuid.uuid4()) + ".jpg"
     deteted_image_file_path = str(Path(current_app.config["UPLOAD_FOLDER"], detected_image_file_name))
     cv2.imwrite(deteted_image_file_path, cv2.cvtColor(result_image, cv2.COLOR_RGB2BGR))
@@ -141,7 +163,7 @@ def save_detected_image_tags(user_image, tags, detected_image_file_name):
     for tag in tags:
         user_image_tag = UserImageTag(user_image_id=user_image.id, tag_name=tag)
         db.session.add(user_image_tag)
-        db.session.commmit()
+        db.session.commit()
 
 @dt.route("/detect/<string:image_id>", methods=["POST"])
 @login_required
@@ -160,8 +182,8 @@ def detect(image_id):
         flash("物体検知処理でエラーが発生しました。")
         db.session.rollback()
         current_app.logger.error(e)
-        return redirect (url_for("detector".index))
-    return redirect(url_for("detector".index))
+        return redirect (url_for("detector.index"))
+    return redirect(url_for("detector.index"))
     
 @dt.route("/images/delete/<string:image_id>", methods=["POST"])
 @login_required
