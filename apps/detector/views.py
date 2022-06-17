@@ -118,7 +118,6 @@ def exec_detector(target_image_path):
     output = model([image_tensor])[0]
     tags = []
 
-    #---画像が検知されない場合エラーになるため、エラーキャッチする必要がある。---
     cv2 = None
 
     result_image = np.array(image.copy())
@@ -221,3 +220,7 @@ def search():
         delete_form=delete_form,
         detector_form=detector_form,
     )
+
+@dt.errorhandler(404)
+def page_not_found(e):
+    return render_template("detector/404.html"),404
