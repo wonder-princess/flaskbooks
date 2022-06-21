@@ -46,5 +46,3 @@ def page_not_found(e):
 def internal_sever_error(e):
     "500 Internal_Sever_Error"
     return render_template("500.html"), 500
-
-

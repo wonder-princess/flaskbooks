@@ -1,3 +1,4 @@
 venv/Lib/site-packages
 model.pt
 apps/images
+flaskbook_api/venv/Lib/site-packages
