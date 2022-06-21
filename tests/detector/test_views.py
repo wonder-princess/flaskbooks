@@ -1,4 +1,5 @@
 from pathlib import Path
+from turtle import up
 
 from apps.detector.models import UserImage
 from flask.helpers import get_root_path
@@ -35,7 +36,7 @@ def upload_image(client,image_path):
     image = Path(get_root_path("tests"), image_path)
     test_file = (
         FileStorage(
-            streem=open(image, "rb"),
+            stream=open(image, "rb"),
             filename=Path(image_path).name,
             content_type="multipart/form-data"
         ),
@@ -66,11 +67,37 @@ def test_detect(client):
     signup(client, "admin", "flaskbook@example.com", "password")
     upload_image(client, "detector/testdata/test_invalid_file.jpg")
     user_image = UserImage.query.first()
+
     rv = client.post(f"/detect/{user_image.id}", follow_redirects=True)
     user_image = UserImage.query.first()
 
     assert user_image.image_path in rv.data.decode()
-    assert "dog" in rv.data.decode()
+    assert "cat" in rv.data.decode()
 
+def test_detect_search(client):
+    signup(client, "admin", "flaskbook@example.com", "password")
+    upload_image(client, "detector/testdata/test_invalid_file.jpg")
+    user_image = UserImage.query.first()
+    
+    client.post(f"/detect/{user_image.id}", follow_redirects=True)
+    
+    # rv = client.get("/images/search?search=cat")
+    # assert user_image.image_path in rv.data.decode()
+    # assert "cat" in rv.data.decode()
 
+    rv = client.get("/images/search?search=test")
+    assert user_image.image_path not in rv.data.decode()
+    assert "cat" not in rv.data.decode()
 
+def test_delete(client):
+    signup(client, "admin", "flaskbook@example.com", "password")
+    upload_image(client, "detector/testdata/test_invalid_file.jpg")
+    user_image = UserImage.query.first()
+
+    image_path = user_image.image_path
+    rv = client.post(f"/detect/{user_image.id}", follow_redirects=True)
+    assert image_path not in rv.data.decode()
+
+def test_custom_error(client):
+    rv = client.get("/notfound")
+    assert "404 Not Found" in rv.data.decode()
