@@ -1,12 +1,19 @@
-from flask import Blueprint, Flask, jsonify, request
+from flask import Blueprint, jsonify, request
 from flaskbook_api.api import calculation
+
+# def create_app(config_name):
+#     app = Flask(__name__)
+#     app.config.from_object(config[config_name])
+#     return app
 
 api = Blueprint("api", __name__)
 
-'''
-def create_app(config_name):
-    app = Flask(__name__)
-    app.config.from_object(config[config_name])
+@api.get("/")
+def index():
+    return jsonify({"column": "value"}), 201
 
-    return app
-'''
+@api.post("/detect")
+def detection():
+    return calculation.detection(request)
+    # return calculation.detection_alt()
+    

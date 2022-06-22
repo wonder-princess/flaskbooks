@@ -82,13 +82,11 @@ def make_line(result_image):
     line = round(0.002 * max(result_image.shape[0:2])) + 1
     return line
 
-def dralw_lines(c1, c2, result_image, line, color):
-
+def draw_lines(c1, c2, result_image, line, color):
     cv2.rectangle(result_image, c1, c2, color, thickness=line)
     return cv2
 
-def dralw_texts(result_image, line, c1, cv2, color, labels, label):
-    
+def draw_texts(result_image, line, c1, cv2, color, labels, label):
     display_txt = f"{labels[label]}" 
     font = max(line - 1, 1)
     t_size = cv2.getTextSize(
@@ -127,8 +125,8 @@ def exec_detector(target_image_path):
             line = make_line(result_image)
             c1 = (int(box[0]), int(box[1]))
             c2 = (int(box[2]), int(box[3]))
-            cv2 = dralw_lines(c1, c2, result_image, line, color)
-            cv2 = dralw_texts(result_image, line, c1, cv2, color, labels, label)
+            cv2 = draw_lines(c1, c2, result_image, line, color)
+            cv2 = draw_texts(result_image, line, c1, cv2, color, labels, label)
             tags.append(labels[label])
     
     detected_image_file_name = str(uuid.uuid4()) + ".jpg"
